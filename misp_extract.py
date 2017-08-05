@@ -26,6 +26,7 @@ xways_files={}
 stats={}
 progress={}
 stats_to_clear=0
+stats_update_interval=10
 
 
 class JsonProgress(object):
@@ -61,9 +62,6 @@ def print_stats():
             print("[++] {:^10} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
 
 
-
-
-
 filenames_regex=re.compile(r"[^|]+")
 filenames_file=open("misp_filenames.list",'w')
 stats["filenames"]=[0,0]
@@ -87,7 +85,7 @@ event_count=0
 attribute_count=0
 print("[+] Extracting:")
 
-progress["event"]=[1,len(response)]
+progress["event"]=[0,len(response)]
 progress["attribs"]=[0,0]
 progress["ioc"]=0
 
@@ -95,7 +93,8 @@ print_stats()
 
 for i in response:
     event = i["Event"]
-    print_stats()
+    if progress["event"][0]%stats_update_interval==0:
+        print_stats()
     if "Attribute" in event:
         progress["attribs"]=[0,len(event["Attribute"])]
         for ioc in event["Attribute"]:
@@ -105,7 +104,8 @@ for i in response:
                     foundhash=hashes[hashalgo]["regex"].search(ioc["value"])
                     if foundhash is not None:
                         stats[hashalgo][0]+=1
-                        def_file.write("%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"],event["info"],event["id"]))
+                        event_info="|".join(event["info"].split("\n"))
+                        def_file.write("%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
                         xways_files[hashalgo].write("%s\n" % foundhash.group(2))
                     else:
                         stats[hashalgo][1]+=1
@@ -118,9 +118,11 @@ for i in response:
                 else:
                     stats["filenames"][1]+=1
     progress["event"][0]+=1
+print_stats()
 print("[+] Done! Extracted {:d} IOCs".format(progress["ioc"]))
-
+print("[+] Closing Files")
 for hashalgo in hashes:
     xways_files[hashalgo].close()
 filenames_file.close()
 def_file.close()
+print("[+] Done!")
