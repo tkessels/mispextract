@@ -14,6 +14,27 @@ class JsonProgress(object):
             sys.stdout.write("\r%8d" % self.count)
         return obj
 
+def open_file(filename,ext=".hashlist"):
+    try:
+        out_files[filename]=open("misp_" + filename + ext,'w')
+    except Exception as e:
+        print("[-] Could not create/open outpufile: %s" % filename)
+        print(e)
+
+def write_file(filename,data):
+    try:
+        out_files[filename].write(data)
+    except:
+        pass
+
+def close_files():
+    if not quiet : print("[+] Closing Files")
+    for files in out_files:
+        try:
+            files.close()
+        except:
+            pass
+    if not quiet : print("[+] Done!")
 
 def print_usage(n):
     print("Usage: %s [-h] [-i] [-q] [-f misp_export.json]"%sys.argv[0])
@@ -40,16 +61,7 @@ def print_stats():
             stats_to_clear+=1
             print("[++] {:^10} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
 
-def close_files():
-    if not quiet : print("[+] Closing Files")
-    try:
-        for hashalgo in hashes: xways_files[hashalgo].close()
-        filenames_file.close()
-        def_file.close()
-    except:
-        pass
 
-    if not quiet : print("[+] Done!")
 
 hashes={
     "md5":{
@@ -74,17 +86,16 @@ hashes={
     }
 
 #Variable declaration
-xways_files={}
 misp_export='misp.json'
 quiet=False
 interactive=False
-xways_files={}
 stats={}
 progress={}
 stats_to_clear=0
 stats_update_interval=10
 event_count=0
 attribute_count=0
+out_files={}
 
 #Parsing Commandline Arguments
 try:
@@ -118,17 +129,17 @@ response = data["response"]
 
 
 filenames_regex=re.compile(r"[^|]+")
-filenames_file=open("misp_filenames.list",'w')
-def_file=open("misp_all_hashes_lut.csv",'w')
-def_file.write("hash;hashtype;category;attribute_value;event_info;event_id\n")
+open_file("filenames",".list")
+open_file("all_hashes_lut",".csv")
+write_file("all_hashes_lut","hash;hashtype;category;attribute_value;event_info;event_id\n")
 stats["filenames"]=[0,0]
 for hashalgo in hashes:
     pattern=r"(^|[^a-fA-F0-9])([a-fA-F0-9]{" + str(hashes[hashalgo]["length"]) + r"})($|[^a-fA-F0-9])"
     hashes[hashalgo]["regex"]=re.compile(pattern)
     stats[hashalgo]=[0,0]
 
-    xways_files[hashalgo]=open("misp_" + hashalgo + "_xways.hashlist",'w')
-    xways_files[hashalgo].write(hashes[hashalgo]["text"]+"\n")
+    open_file(hashalgo)
+    write_file(hashalgo,hashes[hashalgo]["text"]+"\n")
 
 
 if not quiet : print("[+] Extracting:")
@@ -152,8 +163,8 @@ for i in response:
                     if foundhash is not None:
                         stats[hashalgo][0]+=1
                         event_info="|".join(event["info"].split("\n"))
-                        def_file.write("%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
-                        xways_files[hashalgo].write("%s\n" % foundhash.group(2))
+                        write_file("all_hashes_lut","%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
+                        write_file(hashalgo,"%s\n" % foundhash.group(2))
                     else:
                         stats[hashalgo][1]+=1
 
@@ -161,7 +172,7 @@ for i in response:
                 filename=filenames_regex.match(ioc["value"])
                 if filename is not None:
                     stats["filenames"][0]+=1
-                    filenames_file.write("%s\n" % filename.group(0))
+                    write_file("filenames","%s\n" % filename.group(0))
                 else:
                     stats["filenames"][1]+=1
     progress["event"][0]+=1
