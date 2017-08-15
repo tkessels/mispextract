@@ -14,6 +14,13 @@ class JsonProgress(object):
             sys.stdout.write("\r%8d" % self.count)
         return obj
 
+def get_csv_string(*args):
+    data=[]
+    for argument in args:
+        data.append(" ".join(argument.split()).strip().replace(";",","))
+    return ";".join(data)
+
+
 def open_file(filename,ext=".hashlist"):
     try:
         out_files[filename]=open("misp_" + filename + ext,'w')
@@ -163,7 +170,8 @@ for i in response:
                     if foundhash is not None:
                         stats[hashalgo][0]+=1
                         event_info="|".join(event["info"].split("\n"))
-                        write_file("all_hashes_lut","%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
+                        write_file("all_hashes_lut",get_csv_string(foundhash.group(2),hashalgo,ioc["category"],ioc["value"],event_info,event["id"])+"\n")
+                        # write_file("all_hashes_lut","%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
                         write_file(hashalgo,"%s\n" % foundhash.group(2))
                     else:
                         stats[hashalgo][1]+=1
