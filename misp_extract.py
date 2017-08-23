@@ -17,7 +17,17 @@ class JsonProgress(object):
 def get_csv_string(*args):
     data=[]
     for argument in args:
-        data.append(" ".join(str(argument).split()).strip().replace(";",","))
+        #turn anything into string and replace newlines
+        string=str(argument).replace("\n","|")
+        #remove any other speacial chars and double whitespaces
+        string=" ".join(string.split())
+        #replace not csv compliant chars
+        string=string.replace(";", ",")
+        #cut string to a max length
+        length=70
+        string=(string[:length] + '...') if len(string) > length else string
+        #put string up as a field
+        data.append(string)
     return ";".join(data)
 
 
@@ -207,8 +217,7 @@ for i in response:
                     if value_match is not None:
                         value=value_match.group(ioc_type["regex_grp"])
                         stats[ioc_type["shortname"]][0]+=1
-                        event_info="|".join(event["info"].split("\n"))
-                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["to_ids"],ioc["value"],event_info,event["id"]))
+                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["to_ids"],ioc["value"],event["info"],event["id"]))
                         write_file(ioc_type["shortname"],value)
                     else:
                         stats[ioc_type["shortname"]][1]+=1
