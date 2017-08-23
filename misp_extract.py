@@ -21,16 +21,16 @@ def get_csv_string(*args):
     return ";".join(data)
 
 
-def open_file(filename,ext=".hashlist"):
+def open_file(shortname,filename):
     try:
-        out_files[filename]=open("misp_" + filename + ext,'w')
+        out_files[shortname]=open("misp_" + filename,'w')
     except Exception as e:
         print("[-] Could not create/open outpufile: %s" % filename)
         print(e)
 
-def write_file(filename,data):
+def write_file(shortname,data):
     try:
-        out_files[filename].write(data)
+        out_files[shortname].write(data+"\n")
     except:
         pass
 
@@ -68,29 +68,70 @@ def print_stats():
             stats_to_clear+=1
             print("[++] {:^10} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
 
-
-
-hashes={
-    "md5":{
-        "length" : 32,
-        "text" : "MD5"},
-    "sha1":{
-        "length" : 40,
-        "text" : "SHA-1"},
-    "sha224":{
-        "length" : 56,
-        "text" : "SHA-224"},
-    "sha256":{
-        "length" : 64,
-        "text" : "SHA-256"} ,
-    "sha384":{
-        "length" : 96,
-        "text" : "SHA-384"},
-    "sha512":{
-        "length" : 128,
-        "text" : "SHA-512"
-        }
+ioc_md5={
+    "shortname":"md5",
+    "output_filename":"md5.hashlist",
+    "output_headline":"MD5",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{32})($|[^a-fA-F0-9])"),
+    "regex_grp":2
     }
+ioc_sha1={
+    "shortname":"sha1",
+    "output_filename":"sha1.hashlist",
+    "output_headline":"SHA-1",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{40})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha224={
+    "shortname":"sha224",
+    "output_filename":"sha224.hashlist",
+    "output_headline":"SHA-224",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{56})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha384={
+    "shortname":"sha384",
+    "output_filename":"sha384.hashlist",
+    "output_headline":"SHA-384",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{96})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha512={
+    "shortname":"sha512",
+    "output_filename":"sha512.hashlist",
+    "output_headline":"SHA-512",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{128})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_filename={
+    "shortname":"filename",
+    "output_filename":"filenames.list",
+    "regex":re.compile(r"[^|]+"),
+    "regex_grp":0
+}
+ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename]
+
 
 #Variable declaration
 misp_export='misp.json'
@@ -135,18 +176,13 @@ except Exception as e:
 response = data["response"]
 
 
-filenames_regex=re.compile(r"[^|]+")
-open_file("filenames",".list")
-open_file("all_hashes_lut",".csv")
-write_file("all_hashes_lut","hash;hashtype;category;attribute_value;event_info;event_id\n")
-stats["filenames"]=[0,0]
-for hashalgo in hashes:
-    pattern=r"(^|[^a-fA-F0-9])([a-fA-F0-9]{" + str(hashes[hashalgo]["length"]) + r"})($|[^a-fA-F0-9])"
-    hashes[hashalgo]["regex"]=re.compile(pattern)
-    stats[hashalgo]=[0,0]
-
-    open_file(hashalgo)
-    write_file(hashalgo,hashes[hashalgo]["text"]+"\n")
+open_file("lut","ioc_look_up_table.csv")
+write_file("lut","value;ioc_type;category;attribute_value;event_info;event_id")
+for ioc_type in ioc_def:
+    stats[ioc_type["shortname"]]=[0,0]
+    open_file(ioc_type["shortname"],ioc_type["output_filename"])
+    if "output_headline" in ioc_type:
+        write_file(ioc_type["shortname"],ioc_type["output_headline"])
 
 
 if not quiet : print("[+] Extracting:")
@@ -163,26 +199,20 @@ for i in response:
     if "Attribute" in event:
         progress["attribs"]=[0,len(event["Attribute"])]
         for ioc in event["Attribute"]:
+            progress["attribs"][0]+=1
             progress["ioc"]+=1
-            for hashalgo in hashes:
-                if hashalgo in ioc["type"]:
-                    foundhash=hashes[hashalgo]["regex"].search(ioc["value"])
-                    if foundhash is not None:
-                        stats[hashalgo][0]+=1
+            for ioc_type in ioc_def:
+                if ioc_type["shortname"] in ioc["type"]:
+                    value_match=ioc_type["regex"].search(ioc["value"])
+                    if value_match is not None:
+                        value=value_match.group(ioc_type["regex_grp"])
+                        stats[ioc_type["shortname"]][0]+=1
                         event_info="|".join(event["info"].split("\n"))
-                        write_file("all_hashes_lut",get_csv_string(foundhash.group(2),hashalgo,ioc["category"],ioc["value"],event_info,event["id"])+"\n")
-                        # write_file("all_hashes_lut","%s;%s;%s;%s;%s;%s\n" % (foundhash.group(2),hashalgo,ioc["category"],ioc["value"].replace(';',','),event_info.replace(';',','),event["id"]))
-                        write_file(hashalgo,"%s\n" % foundhash.group(2))
+                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["value"],event_info,event["id"]))
+                        write_file(ioc_type["shortname"],value)
                     else:
-                        stats[hashalgo][1]+=1
+                        stats[ioc_type["shortname"]][1]+=1
 
-            if "filename" in ioc["type"]:
-                filename=filenames_regex.match(ioc["value"])
-                if filename is not None:
-                    stats["filenames"][0]+=1
-                    write_file("filenames","%s\n" % filename.group(0))
-                else:
-                    stats["filenames"][1]+=1
     progress["event"][0]+=1
 if not quiet :
     print_stats()
