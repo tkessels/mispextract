@@ -102,11 +102,12 @@ stats_to_clear=0
 stats_update_interval=10
 event_count=0
 attribute_count=0
+tag_filter=None
 out_files={}
 
 #Parsing Commandline Arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hiqf:")
+    opts, args = getopt.getopt(sys.argv[1:],"hiqt:f:")
 except getopt.GetoptError: print_usage(2)
 for option, argument in opts:
     if option == '-h': print_usage(0)
@@ -114,7 +115,11 @@ for option, argument in opts:
         interactive=True
     elif option == '-q':
         quiet=True
-    elif option in ("-f"): misp_export = argument
+    elif option in ("-f"):
+        misp_export = argument
+    elif option in ("-t"):
+        if not quiet : print("[+] Filter set! Only IOCs matching one of the following words will be exportet: {}".format(argument))
+        tag_filter = argument
 
 
 #reading input file
@@ -155,12 +160,25 @@ progress["event"]=[1,len(response)]
 progress["attribs"]=[0,0]
 progress["ioc"]=0
 
+def check_event(event):
+    if "Attribute" in event:
+        if tag_filter:
+            if "Tag" in event and len(event["Tag"])>0:
+                for x in event["Tag"]:
+                    for word in tag_filter.split():
+                        if word in x["name"].lower():
+                            return True
+        else:
+            return True
+    return False
+
+
 
 for i in response:
     event = i["Event"]
     if not quiet and progress["event"][0]%stats_update_interval==0:
         print_stats()
-    if "Attribute" in event:
+    if check_event(event):
         progress["attribs"]=[0,len(event["Attribute"])]
         for ioc in event["Attribute"]:
             progress["ioc"]+=1
