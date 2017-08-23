@@ -17,7 +17,7 @@ class JsonProgress(object):
 def get_csv_string(*args):
     data=[]
     for argument in args:
-        data.append(" ".join(argument.split()).strip().replace(";",","))
+        data.append(" ".join(str(argument).split()).strip().replace(";",","))
     return ";".join(data)
 
 
@@ -177,7 +177,7 @@ response = data["response"]
 
 
 open_file("lut","ioc_look_up_table.csv")
-write_file("lut","value;ioc_type;category;attribute_value;event_info;event_id")
+write_file("lut","value;ioc_type;category;ids_relevant;attribute_value;event_info;event_id")
 for ioc_type in ioc_def:
     stats[ioc_type["shortname"]]=[0,0]
     open_file(ioc_type["shortname"],ioc_type["output_filename"])
@@ -208,7 +208,7 @@ for i in response:
                         value=value_match.group(ioc_type["regex_grp"])
                         stats[ioc_type["shortname"]][0]+=1
                         event_info="|".join(event["info"].split("\n"))
-                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["value"],event_info,event["id"]))
+                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["to_ids"],ioc["value"],event_info,event["id"]))
                         write_file(ioc_type["shortname"],value)
                     else:
                         stats[ioc_type["shortname"]][1]+=1
