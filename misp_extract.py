@@ -4,6 +4,71 @@ import sys
 import getopt
 
 
+ioc_md5={
+    "shortname":"md5",
+    "output_filename":"md5.hashlist",
+    "output_headline":"MD5",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{32})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+    }
+ioc_sha1={
+    "shortname":"sha1",
+    "output_filename":"sha1.hashlist",
+    "output_headline":"SHA-1",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{40})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha224={
+    "shortname":"sha224",
+    "output_filename":"sha224.hashlist",
+    "output_headline":"SHA-224",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{56})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha256={
+    "shortname":"sha256",
+    "output_filename":"sha256.hashlist",
+    "output_headline":"SHA-256",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha384={
+    "shortname":"sha384",
+    "output_filename":"sha384.hashlist",
+    "output_headline":"SHA-384",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{96})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_sha512={
+    "shortname":"sha512",
+    "output_filename":"sha512.hashlist",
+    "output_headline":"SHA-512",
+    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{128})($|[^a-fA-F0-9])"),
+    "regex_grp":2
+}
+ioc_filename={
+    "shortname":"filename",
+    "output_filename":"filenames.list",
+    "regex":re.compile(r"[^|]+"),
+    "regex_grp":0
+}
+ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename]
+
+
 class JsonProgress(object):
     def __init__(self):
         self.count = 0
@@ -78,69 +143,6 @@ def print_stats():
             stats_to_clear+=1
             print("[++] {:^10} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
 
-ioc_md5={
-    "shortname":"md5",
-    "output_filename":"md5.hashlist",
-    "output_headline":"MD5",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{32})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-    }
-ioc_sha1={
-    "shortname":"sha1",
-    "output_filename":"sha1.hashlist",
-    "output_headline":"SHA-1",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{40})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha224={
-    "shortname":"sha224",
-    "output_filename":"sha224.hashlist",
-    "output_headline":"SHA-224",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{56})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha256={
-    "shortname":"sha256",
-    "output_filename":"sha256.hashlist",
-    "output_headline":"SHA-256",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha256={
-    "shortname":"sha256",
-    "output_filename":"sha256.hashlist",
-    "output_headline":"SHA-256",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha256={
-    "shortname":"sha256",
-    "output_filename":"sha256.hashlist",
-    "output_headline":"SHA-256",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha384={
-    "shortname":"sha384",
-    "output_filename":"sha384.hashlist",
-    "output_headline":"SHA-384",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{96})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha512={
-    "shortname":"sha512",
-    "output_filename":"sha512.hashlist",
-    "output_headline":"SHA-512",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{128})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_filename={
-    "shortname":"filename",
-    "output_filename":"filenames.list",
-    "regex":re.compile(r"[^|]+"),
-    "regex_grp":0
-}
-ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename]
 
 
 #Variable declaration
