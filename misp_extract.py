@@ -66,7 +66,29 @@ ioc_filename={
     "regex":re.compile(r"[^|]+"),
     "regex_grp":0
 }
-ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename]
+ioc_ip_src={
+    "shortname":"ip-src",
+    "output_filename":"ip-src.list",
+    "regex":re.compile(r"[^|]+"),
+    "regex_grp":0,
+    "to_ids":True
+}
+ioc_ip_dst={
+    "shortname":"ip-dst",
+    "output_filename":"ip-dst.list",
+    "regex":re.compile(r"[^|]+"),
+    "regex_grp":0,
+    "to_ids":True
+
+}
+ioc_domain={
+    "shortname":"domain",
+    "output_filename":"domains.list",
+    "regex":re.compile(r"[^|]+"),
+    "regex_grp":0,
+    "to_ids":True
+}
+ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src]
 
 
 class JsonProgress(object):
@@ -237,7 +259,7 @@ for i in response:
                     if value_match is not None:
                         value=value_match.group(ioc_type["regex_grp"])
                         stats[ioc_type["shortname"]][0]+=1
-                        write_file("lut",get_csv_string(value,ioc_type["shortname"],ioc["category"],ioc["to_ids"],ioc["value"],event["info"],event["id"]))
+                        write_file("lut",get_csv_string(value,ioc["type"],ioc["category"],ioc["to_ids"],ioc["value"],event["info"],event["id"]))
                         write_file(ioc_type["shortname"],value)
                     else:
                         stats[ioc_type["shortname"]][1]+=1
@@ -245,7 +267,9 @@ for i in response:
     progress["event"][0]+=1
 if not quiet :
     print_stats()
-    print("[+] Done! Extracted {:d} IOCs".format(progress["ioc"]))
+    summe=sum([stats[x][0] for x in stats])
+    print("[+] Done! Extracted {:d} IOCs".format(summe))
+    # print("[+] Done! Extracted {:d} IOCs".format(progress["ioc"]))
 
 
 close_files()
