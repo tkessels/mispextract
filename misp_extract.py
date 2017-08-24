@@ -66,7 +66,21 @@ ioc_filename={
     "regex":re.compile(r"[^|]+"),
     "regex_grp":0
 }
-ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename]
+ioc_domain={
+    "shortname":"domain",
+    "output_filename":"domains.list",
+    "regex":re.compile(r".*"),
+    "regex_grp":0
+}
+ioc_ips={
+    "shortname":"ips",
+    "types":["ip-src","ip-dst"],
+    "output_filename":"ips.list",
+    "regex":re.compile(r".*"),
+    "regex_grp":0
+
+}
+ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ips]
 
 
 class JsonProgress(object):
@@ -221,7 +235,6 @@ def check_event(event):
     return False
 
 
-
 for i in response:
     event = i["Event"]
     if not quiet and progress["event"][0]%stats_update_interval==0:
@@ -232,7 +245,7 @@ for i in response:
             progress["attribs"][0]+=1
             progress["ioc"]+=1
             for ioc_type in ioc_def:
-                if ioc_type["shortname"] in ioc["type"]:
+                if ("types" in ioc_type and [i for i in ioc_type["types"] if i in ioc["type"] ] ) or ioc_type["shortname"] in ioc["type"]:
                     value_match=ioc_type["regex"].search(ioc["value"])
                     if value_match is not None:
                         value=value_match.group(ioc_type["regex_grp"])
