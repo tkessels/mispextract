@@ -32,20 +32,6 @@ ioc_sha256={
     "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
     "regex_grp":2
 }
-ioc_sha256={
-    "shortname":"sha256",
-    "output_filename":"sha256.hashlist",
-    "output_headline":"SHA-256",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
-ioc_sha256={
-    "shortname":"sha256",
-    "output_filename":"sha256.hashlist",
-    "output_headline":"SHA-256",
-    "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{64})($|[^a-fA-F0-9])"),
-    "regex_grp":2
-}
 ioc_sha384={
     "shortname":"sha384",
     "output_filename":"sha384.hashlist",
@@ -88,6 +74,7 @@ ioc_domain={
     "regex_grp":0,
     "to_ids":True
 }
+
 ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src]
 
 
