@@ -98,7 +98,7 @@ ioc_email_subject={
 }
 
 
-ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src]
+ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src,ioc_email_src,ioc_email_dst,ioc_email_subject]
 
 
 class JsonProgress(object):
@@ -167,13 +167,13 @@ def print_stats():
         print("[++] [{:_<{wdt}}] {:03d}%".format("+"*int(progress_barlength),int(progress_percentage),wdt=width))
         stats_to_clear+=1
 
-    print("[++]   IOC-TYPE :  found | failed ")
+    print("[++] {:^14} :{:>7} | {}".format("IOC-TYPE","found","failed"))
     stats_to_clear+=1
 
     for key in stats:
         if stats[key][0]+stats[key][1]>0:
             stats_to_clear+=1
-            print("[++] {:^10} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
+            print("[++] {:^14} : {:>7d}|{:d}".format(key,stats[key][0],stats[key][1]))
 
 
 
@@ -264,14 +264,19 @@ for i in response:
             progress["ioc"]+=1
             for ioc_type in ioc_def:
                 if ("types" in ioc_type and [i for i in ioc_type["types"] if i in ioc["type"] ] ) or ioc_type["shortname"] in ioc["type"]:
-                    value_match=ioc_type["regex"].search(ioc["value"])
-                    if value_match is not None:
-                        value=value_match.group(ioc_type["regex_grp"])
-                        stats[ioc_type["shortname"]][0]+=1
-                        write_file("lut",get_csv_string(value,ioc["type"],ioc["category"],ioc["to_ids"],ioc["value"],event["info"],event["id"]))
-                        write_file(ioc_type["shortname"],value)
+                    if "regex" in ioc_type:
+                        value_match=ioc_type["regex"].search(ioc["value"])
+                        if value_match is None:
+                            stats[ioc_type["shortname"]][1]+=1
+                            continue
+                        else:
+                            value=value_match.group(ioc_type["regex_grp"])
                     else:
-                        stats[ioc_type["shortname"]][1]+=1
+                        value=ioc["value"]
+
+                    stats[ioc_type["shortname"]][0]+=1
+                    write_file("lut",get_csv_string(value,ioc["type"],ioc["category"],ioc["to_ids"],ioc["value"],event["info"],event["id"]))
+                    write_file(ioc_type["shortname"],value)
 
     progress["event"][0]+=1
 if not quiet :
