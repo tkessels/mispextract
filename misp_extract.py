@@ -48,6 +48,7 @@ ioc_sha512={
 }
 ioc_filename={
     "shortname":"filename",
+    "types":["filename","email-attachment"],
     "output_filename":"filenames.list",
     "regex":re.compile(r"[^|]+"),
     "regex_grp":0
@@ -74,6 +75,28 @@ ioc_domain={
     "regex_grp":0,
     "to_ids":True
 }
+ioc_email_src={
+    "shortname":"email-src",
+    "output_filename":"mailfrom.list",
+    "regex":re.compile(r".+"),
+    "regex_grp":0,
+    "to_ids":True
+}
+ioc_email_dst={
+    "shortname":"email-dst",
+    "output_filename":"mailto.list",
+    "regex":re.compile(r".+"),
+    "regex_grp":0,
+    "to_ids":True
+}
+ioc_email_subject={
+    "shortname":"email-subject",
+    "output_filename":"mailsubject.list",
+    "regex":re.compile(r".+"),
+    "regex_grp":0,
+    "to_ids":True
+}
+
 
 ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src]
 
