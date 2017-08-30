@@ -3,6 +3,13 @@ import re
 import sys
 import getopt
 
+#IOC - Definitions
+# shortname         :   short name for internal reverence
+# output_filename   :   filename of export
+# output_headline   :   [optional] Firstline in outpufile
+# regex             :   [optional] regular expression to extract part of value
+# regex_grp         :   [optional] to select matchinggroup
+# to_ids            :   [optional] whether or not the to_ids flags should be considered
 
 ioc_md5={
     "shortname":"md5",
@@ -10,7 +17,7 @@ ioc_md5={
     "output_headline":"MD5",
     "regex":re.compile(r"(^|[^a-fA-F0-9])([a-fA-F0-9]{32})($|[^a-fA-F0-9])"),
     "regex_grp":2
-    }
+}
 ioc_sha1={
     "shortname":"sha1",
     "output_filename":"sha1.hashlist",
@@ -66,7 +73,6 @@ ioc_ip_dst={
     "regex":re.compile(r"[^|]+"),
     "regex_grp":0,
     "to_ids":True
-
 }
 ioc_domain={
     "shortname":"domain",
@@ -97,10 +103,10 @@ ioc_email_subject={
     "to_ids":True
 }
 
-
+#list of available_iocs
 ioc_def=[ioc_md5,ioc_sha1,ioc_sha224,ioc_sha256,ioc_sha384,ioc_sha512,ioc_filename,ioc_domain,ioc_ip_dst,ioc_ip_src,ioc_email_src,ioc_email_dst,ioc_email_subject]
 
-
+#helper class to print progress during json Parsing
 class JsonProgress(object):
     def __init__(self):
         self.count = 0
@@ -111,6 +117,7 @@ class JsonProgress(object):
             sys.stdout.write("\r%8d" % self.count)
         return obj
 
+#creates csv string from arguments
 def get_csv_string(*args):
     data=[]
     for argument in args:
@@ -127,7 +134,7 @@ def get_csv_string(*args):
         data.append(string)
     return ";".join(data)
 
-
+#opens outputfile and keeps track of filedescriptors
 def open_file(shortname,filename):
     try:
         out_files[shortname]=open("misp_" + filename,'w')
@@ -135,12 +142,14 @@ def open_file(shortname,filename):
         print("[-] Could not create/open outpufile: %s" % filename)
         print(e)
 
+#write data to outputfile
 def write_file(shortname,data):
     try:
         out_files[shortname].write(data+"\n")
     except:
         pass
 
+#close all outputfiles
 def close_files():
     if not quiet : print("[+] Closing Files")
     for files in out_files:
@@ -150,10 +159,12 @@ def close_files():
             pass
     if not quiet : print("[+] Done!")
 
+#print usage information on screen
 def print_usage(n):
     print("Usage: %s [-h] [-i] [-q] [-f misp_export.json]"%sys.argv[0])
     sys.exit(n)
 
+#print extractions stats to console
 def print_stats():
     global stats_to_clear
     sys.stdout.write('\x1b[1A\x1b[2K'*stats_to_clear)
@@ -224,7 +235,7 @@ except Exception as e:
 
 response = data["response"]
 
-
+#create outputfiles
 open_file("lut","ioc_look_up_table.csv")
 write_file("lut","value;ioc_type;category;ids_relevant;attribute_value;event_info;event_id")
 for ioc_type in ioc_def:
@@ -252,7 +263,7 @@ def check_event(event):
             return True
     return False
 
-
+#check all events agains ioc_definitions
 for i in response:
     event = i["Event"]
     if not quiet and progress["event"][0]%stats_update_interval==0:
